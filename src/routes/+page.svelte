@@ -9,10 +9,16 @@
 	let filteredTodos = $derived(filterTodo());
 
 	$effect(() => {
-		console.log(todos);
-		console.log(filter);
+		const savedTodos = localStorage.getItem('todos');
+		console.log(savedTodos);
+		if (savedTodos) {
+			todos = JSON.parse(savedTodos);
+		}
 	});
 
+	$effect(() => {
+		localStorage.setItem('todos', JSON.stringify(todos));
+	});
 	function addTodo(event: KeyboardEvent) {
 		if (event.key !== 'Enter') return;
 
@@ -50,13 +56,17 @@
 				return todos.filter((todo) => todo.done);
 		}
 	}
+
+	function remaining() {
+		return todos.filter((todo) => !todo.done).length;
+	}
 </script>
 
 <input on:keydown={addTodo} placeholder="Add todo" type="text" />
 
 <div class="todos">
 	{#each filteredTodos as todo, i}
-		<div class="todo">
+		<div class:completed={todo.done} class="todo">
 			<input on:input={editTodo} value={todo.text} data-index={i} type="text" />
 			<input on:change={toggleTodo} checked={todo.done} data-index={i} type="checkbox" />
 		</div>
@@ -67,6 +77,7 @@
 		<button onclick={() => setFilter(filter as Filters)}>{filter}</button>
 	{/each}
 </div>
+<p>{remaining()}: remaining</p>
 
 <style>
 	.todos {

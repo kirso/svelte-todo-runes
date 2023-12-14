@@ -6,9 +6,11 @@
 	type Filters = 'all' | 'active' | 'completed';
 	let todos = $state<Todo[]>([]);
 	let filter = $state<Filters>('all' as Filters);
+	let filteredTodos = $derived(filterTodo());
 
 	$effect(() => {
 		console.log(todos);
+		console.log(filter);
 	});
 
 	function addTodo(event: KeyboardEvent) {
@@ -37,15 +39,26 @@
 	function setFilter(newFilter: Filters) {
 		filter = newFilter;
 	}
+
+	function filterTodo() {
+		switch (filter) {
+			case 'all':
+				return todos;
+			case 'active':
+				return todos.filter((todo) => !todo.done);
+			case 'completed':
+				return todos.filter((todo) => todo.done);
+		}
+	}
 </script>
 
 <input on:keydown={addTodo} placeholder="Add todo" type="text" />
 
 <div class="todos">
-	{#each todos as todo}
+	{#each filteredTodos as todo, i}
 		<div class="todo">
-			<input on:input={editTodo} value={todo.text} type="text" />
-			<input on:change={toggleTodo} checked={todo.done} type="checkbox" />
+			<input on:input={editTodo} value={todo.text} data-index={i} type="text" />
+			<input on:change={toggleTodo} checked={todo.done} data-index={i} type="checkbox" />
 		</div>
 	{/each}
 </div>
@@ -64,6 +77,11 @@
 
 	.todo {
 		position: relative;
+		transition: opacity 0.3s;
+	}
+
+	.completed {
+		opacity: 0.4;
 	}
 
 	input[type='text'] {
@@ -76,5 +94,9 @@
 		position: absolute;
 		right: 4%;
 		translate: 0% -50%;
+	}
+
+	.filters {
+		margin-block: 1rem;
 	}
 </style>
